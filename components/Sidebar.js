@@ -33,27 +33,25 @@ export default function Sidebar() {
 
   const router = useRouter();
 
-  const [groupList, setGroupList] = useState([]);
+  // const [groupList, setGroupList] = useState([]);
 
   //version 2
   const [value, loading, error] = Query1("62011104@kmitl.ac.th");
 
   if (!loading) {
-    console.log("eiei");
-    console.log(value.size);
     value.docs.forEach((item) => {
       console.log(item.data());
     });
   }
 
-  const eiei = async function () {
-    const groups = await GroupController.getGroupByUid(user.uid);
-    setGroupList(groups.docs.map((e) => e.data()));
-  };
+  // const eiei = async function () {
+  //   const groups = await GroupController.getGroupByUid(user.uid);
+  //   setGroupList(groups.docs.map((e) => e.data()));
+  // };
 
-  useEffect(() => {
-    eiei();
-  }, []);
+  // useEffect(() => {
+  //   eiei();
+  // }, []);
 
   const redirect = (id) => {
     router.push(`/chat/${id}`);
@@ -113,9 +111,9 @@ export default function Sidebar() {
         sx={{ scrollbarWidth: "none" }}
         flex={1}
       >
-        {groupList.map((e, index) => (
+        {/* {groupList.map((e, index) => (
           <ChatList key={index} value={e} />
-        ))}
+        ))} */}
 
         {}
       </Flex>
@@ -135,9 +133,9 @@ const ChatList = ({ value }) => {
     // }
   };
 
-  useEffect(() => {
-    setChatList();
-  }, []);
+  // useEffect(() => {
+  //   setChatList();
+  // }, []);
 
   return (
     <Flex
@@ -145,9 +143,9 @@ const ChatList = ({ value }) => {
       p={3}
       align="center"
       _hover={{ bg: "gray.100", cursor: "pointer" }}
-      onClick={() => redirect(chat.id)}
+      // onClick={() => redirect(chat.id)}
     >
-      <Avatar src="" marginEnd={3} />
+      {/* <Avatar src="" marginEnd={3} /> */}
       {/* <Text>{e}</Text> */}
 
       {/* <Text>{getOtherEmail(chat.users, user)}</Text> */}
