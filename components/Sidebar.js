@@ -1,5 +1,5 @@
 import { Avatar } from "@chakra-ui/avatar";
-import { Button } from "@chakra-ui/react";
+import { Button, InputGroup } from "@chakra-ui/react";
 import { IconButton } from "@chakra-ui/button";
 import { Flex, Text } from "@chakra-ui/layout";
 import { ArrowLeftIcon } from "@chakra-ui/icons";
@@ -26,6 +26,7 @@ import getOtherEmail from "../utils/getOtherEmail";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 // import { useCollection } from "react-firebase-hooks/firestore";
+import { Query1 } from "../hook/user/user";
 
 export default function Sidebar() {
   const [user] = useAuthState(auth);
@@ -34,19 +35,16 @@ export default function Sidebar() {
 
   const [groupList, setGroupList] = useState([]);
 
-  const [value, loading, error] = useCollection(
-    collection(
-      db,
-      "message",
-      "CSxfctQL4R2HauwspNUs",
-      "message"
-      // "5ykHsywBoUs3wzzJOnOV"
-    ),
-    {
-      snapshotListenOptions: { includeMetadataChanges: true },
-    }
-  );
-  console.log({ value });
+  //version 2
+  const [value, loading, error] = Query1("62011104@kmitl.ac.th");
+
+  if (!loading) {
+    console.log("eiei");
+    console.log(value.size);
+    value.docs.forEach((item) => {
+      console.log(item.data());
+    });
+  }
 
   const eiei = async function () {
     const groups = await GroupController.getGroupByUid(user.uid);
