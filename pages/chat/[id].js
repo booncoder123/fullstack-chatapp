@@ -17,30 +17,30 @@ import { useRef, useEffect } from "react";
 export default function Chat() {
   const router = useRouter();
   const { id } = router.query;
-  const [user] = useAuthState(auth);
-  const [chat] = useDocumentData(doc(db, "chats", id));
-  const q = query(collection(db, `chats/${id}/messages`), orderBy("timestamp"));
-  const [messages] = useCollectionData(q);
-  const bottomOfChat = useRef();
+  // const [user] = useAuthState(auth);
+  // const [chat] = useDocumentData(doc(db, "chats", id));
+  // const q = query(collection(db, `chats/${id}/messages`), orderBy("timestamp"));
+  // const [messages] = useCollectionData(q);
+  // const bottomOfChat = useRef();
 
-  const getMessages = () =>
-    messages?.map((msg) => {
-      const sender = msg.sender === user.email;
-      return (
-        <Flex
-          key={Math.random()}
-          alignSelf={sender ? "flex-start" : "flex-end"}
-          bg={sender ? "blue.100" : "green.100"}
-          w="fit-content"
-          minWidth="100px"
-          borderRadius="lg"
-          p={3}
-          m={1}
-        >
-          <Text>{msg.text}</Text>
-        </Flex>
-      );
-    });
+  // const getMessages = () =>
+  //   messages?.map((msg) => {
+  //     const sender = msg.sender === user.email;
+  //     return (
+  //       <Flex
+  //         key={Math.random()}
+  //         alignSelf={sender ? "flex-start" : "flex-end"}
+  //         bg={sender ? "blue.100" : "green.100"}
+  //         w="fit-content"
+  //         minWidth="100px"
+  //         borderRadius="lg"
+  //         p={3}
+  //         m={1}
+  //       >
+  //         <Text>{msg.text}</Text>
+  //       </Flex>
+  //     );
+  //   });
 
   // useEffect(
   //   () =>
@@ -63,7 +63,7 @@ export default function Chat() {
       <Sidebar />
 
       <Flex flex={1} direction="column">
-        <Topbar email={getOtherEmail(chat?.users, user)} />
+        {/* <Topbar email={getOtherEmail(chat?.users, user)} /> */}
 
         <Flex
           flex={1}
@@ -73,8 +73,8 @@ export default function Chat() {
           overflowX="scroll"
           sx={{ scrollbarWidth: "none" }}
         >
-          {getMessages()}
-          <div ref={bottomOfChat}></div>
+          {/* {getMessages()} */}
+          {/* <div ref={bottomOfChat}></div> */}
         </Flex>
 
         <Bottombar id={id} user={user} />

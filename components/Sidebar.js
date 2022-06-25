@@ -26,32 +26,22 @@ import getOtherEmail from "../utils/getOtherEmail";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 // import { useCollection } from "react-firebase-hooks/firestore";
-import { Query1 } from "../hook/user/user";
+import { useGetGroupByUid } from "../hook/group";
+import { useGetUserByUid } from "../hook/user";
 
 export default function Sidebar() {
   const [user] = useAuthState(auth);
 
   const router = useRouter();
 
-  // const [groupList, setGroupList] = useState([]);
-
-  //version 2
-  const [value, loading, error] = Query1("62011104@kmitl.ac.th");
-
-  if (!loading) {
-    value.docs.forEach((item) => {
-      console.log(item.data());
+  const [groups, groupsLoading, groupsError] = useGetGroupByUid(user.uid);
+  if (!groupsLoading) {
+    let listItem = [];
+    const result = groups.docs.map((item) => {
+      listItem.push(item.data());
     });
+    console.log(listItem);
   }
-
-  // const eiei = async function () {
-  //   const groups = await GroupController.getGroupByUid(user.uid);
-  //   setGroupList(groups.docs.map((e) => e.data()));
-  // };
-
-  // useEffect(() => {
-  //   eiei();
-  // }, []);
 
   const redirect = (id) => {
     router.push(`/chat/${id}`);
@@ -111,31 +101,21 @@ export default function Sidebar() {
         sx={{ scrollbarWidth: "none" }}
         flex={1}
       >
-        {/* {groupList.map((e, index) => (
-          <ChatList key={index} value={e} />
-        ))} */}
-
-        {}
+        {!groupsLoading &&
+          groups.docs.map((e, index) => (
+            <ChatList key={index} value={e.data()} />
+          ))}
       </Flex>
     </Flex>
   );
 }
 
 const ChatList = ({ value }) => {
-  const [otherUser, setOtherUser] = useState(null);
   const [user] = useAuthState(auth);
-  const setChatList = async () => {
-    // setOtherUser(
-    //   UserController.getUserByUid(value.members.slice(user.uid, 1).at(0)).data()
-    // );
-    // if (otherUser) {
-    //   console.log(otherUser);
-    // }
-  };
-
-  // useEffect(() => {
-  //   setChatList();
-  // }, []);
+  const [otherUser, otherUserLoading, otherUserError] = useGetUserByUid(
+    value.members.filter((value) => value != user.uid).at(0)
+  );
+  const { photoURL } = !otherUserLoading ? otherUser.data() : {};
 
   return (
     <Flex
@@ -145,10 +125,8 @@ const ChatList = ({ value }) => {
       _hover={{ bg: "gray.100", cursor: "pointer" }}
       // onClick={() => redirect(chat.id)}
     >
-      {/* <Avatar src="" marginEnd={3} /> */}
-      {/* <Text>{e}</Text> */}
-
-      {/* <Text>{getOtherEmail(chat.users, user)}</Text> */}
+      <Avatar src={photoURL || ""} marginEnd={3} />
+      <Text>{value.recentMessage ? value.recentMessage.messageText : ""}</Text>
     </Flex>
   );
 };
