@@ -30,15 +30,9 @@ import { async } from "@firebase/util";
 const groupRef = collection(db, "group");
 
 export default class Controller {
-  //   static getGroupByUid = async (uid) => {
-  //     const q = query(groupRef, where("members", "array-contains", uid));
-  //     const querySnapshot = await getDocs(q);
-  //     return querySnapshot;
-  //   };
   static getChatPageData = async (groupId, userId) => {
     const group = await GroupController.getGroupById(groupId);
     const messageList = await MessageController.getMessageByGroupId(groupId);
-    // const otherId = group.members.filter((uid) => uid != userId).pop();
 
     return {
       group: {

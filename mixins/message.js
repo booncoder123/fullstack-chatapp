@@ -33,9 +33,6 @@ export default class MessageController {
     const q = query(messageRef, orderBy("sentAt"));
 
     const querySnapshot = await getDocs(q);
-    // querySnapshot.forEach((item) => {
-    //   messages.push(item.data());
-    // });
 
     for (const item of querySnapshot.docs) {
       const messageData = item.data();
@@ -57,5 +54,6 @@ export default class MessageController {
       sentBy: senderId,
     };
     await addDoc(collection(db, "message", groupId, "messages"), obj);
+    await GroupController.postRecentMessage(groupId, obj);
   };
 }
