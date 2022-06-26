@@ -57,7 +57,6 @@ export default function Chat() {
         collection(db, "message", id, "messages"),
         async (snapShot) => {
           const data = await Controller.getChatPageData(id, uid);
-
           setData(data);
         }
       );

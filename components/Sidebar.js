@@ -18,6 +18,7 @@ import {
   getDoc,
   doc,
   orderBy,
+  onSnapshot,
 } from "@firebase/firestore";
 import GroupController from "../mixins/group.js";
 import MessageController from "../mixins/message";
@@ -63,17 +64,14 @@ export default function Sidebar() {
       setGroups(data);
     };
 
-    getGroupByUid();
+    const q = query(
+      collection(db, "group"),
+      where("members", "array-contains", uid)
+    );
+    onSnapshot(q, async (snapShot) => {
+      getGroupByUid();
+    });
   }, []);
-
-  // const [groups, groupsLoading, groupsError] = useGetGroupByUid(user.uid);
-  // if (!groupsLoading) {
-  //   let listItem = [];
-  //   const result = groups.docs.map((item) => {
-  //     listItem.push(item.data());
-  //   });
-  //   console.log(listItem);
-  // }
 
   const chatExists = (email) =>
     chats?.find(
@@ -162,6 +160,7 @@ const ChatList = ({ value }) => {
   // );
   // const { photoURL } = !otherUserLoading ? otherUser.data() : {};
 
+  console.log({ value });
   const router = useRouter();
 
   const redirect = (id) => {

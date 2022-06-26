@@ -39,7 +39,7 @@ export default class GroupController {
         const data = element.data();
         const secPersonId = data.members.filter((pid) => pid != uid).pop();
         const secPersonData = await UserController.getUserByUid(secPersonId);
-
+        console.log(secPersonId, secPersonData, data);
         groups.push({
           id: element.id,
           ...element.data(),
