@@ -30,6 +30,6 @@ export default class UserController {
   static getUserByUid = async (uid) => {
     const userRef = doc(db, "user", uid);
     const userSnapShot = await getDoc(userRef);
-    return userSnapShot;
+    return userSnapShot.data();
   };
 }

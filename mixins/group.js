@@ -23,15 +23,86 @@ import Group from "../mixins/group.js";
 import getOtherEmail from "../utils/getOtherEmail";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-
-const groupRef = collection(db, "group");
+import UserController from "./user";
 
 export default class GroupController {
   static getGroupByUid = async (uid) => {
+    let groups = [];
+    const groupRef = collection(db, "group");
     const q = query(groupRef, where("members", "array-contains", uid));
     const querySnapshot = await getDocs(q);
-    return querySnapshot;
+
+    // for(let item = 0 ; item < querySnapshot.docs)
+    // console.log(querySnapshot.docs);
+    if (querySnapshot.docs.length) {
+      for (const element of querySnapshot.docs) {
+        const data = element.data();
+        const secPersonId = data.members.filter((pid) => pid != uid).pop();
+        const secPersonData = await UserController.getUserByUid(secPersonId);
+
+        groups.push({
+          id: element.id,
+          ...element.data(),
+          otherPerson: secPersonData,
+        });
+      }
+    }
+
+    return groups;
   };
+  static getGroupById = async (groupId) => {
+    const groupRef = doc(db, "group", groupId);
+    const q = query(groupRef);
+    const querySnapshot = await getDoc(q);
+
+    return querySnapshot.data();
+  };
+
+  static postRecentMessage = async (groupId, obj) => {
+    // console.log(groupId, obj);
+    // await addDoc(collection(db, "group", groupId, "recentMessage"), obj);
+    // await setDoc(doc(db, "group", groupId, "recentMessage"), obj);
+  };
+
+  static postGroup = async (uid, otherId, messageText) => {
+    try {
+      console.log(uid, otherId);
+      const groupRef = collection(db, "group");
+      const q = query(
+        groupRef,
+        where("members", "==", [uid, otherId])
+
+        // where("members", "==", otherId)
+      );
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.docs.length != 0) {
+        console.log("hell");
+        alert("ผู้ใช้คนนี้ได้ถูกเพิ่มไปเเล้ว");
+        return;
+      }
+
+      const obj = {
+        members: [uid, otherId],
+        name: "",
+        type: "private",
+        recentMessage: {
+          messageText: "",
+          sendAt: new Date(),
+          sendBy: uid,
+        },
+      };
+
+      const docRef = await addDoc(collection(db, "group"), obj);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // const useGetGroupById = (groupId) =>
+  // useDocument(query(doc(db, "group", groupId)), {
+  //   snapshotListenOptions: { includeMetadataChanges: true },
+  // });
+
   // static filterGroup(userArray) {
   //   return new Promise((resolve, reject) => {
   //     let groupRef = db.collection("group");
@@ -112,3 +183,32 @@ export default class GroupController {
   //   }
   // }
 }
+
+// filterGroup(userArray) {
+//   const vm = this
+//   vm.groups = []
+//   return new Promise((resolve, reject) => {
+//     let groupRef = db.collection('group')
+//     userArray.forEach((userId) => {
+//       groupRef = groupRef.where('members', '==', userId)
+//     })
+//     groupRef
+//       .get()
+//       .then(function (querySnapshot) {
+//         const allGroups = []
+//         querySnapshot.forEach((doc) => {
+//           const data = doc.data()
+//           data.id = doc.id
+//           allGroups.push(data)
+//        })
+//        if (allGroups.length > 0) {
+//          resolve(allGroups[0])
+//        } else {
+//          resolve(null)
+//        }
+//     })
+//     .catch(function (error) {
+//       reject(error)
+//     })
+//   })
+// }

@@ -29,23 +29,51 @@ import { useEffect, useState } from "react";
 import { useGetGroupByUid } from "../hook/group";
 import { useGetUserByUid } from "../hook/user";
 
+function getCookie(cname) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == " ") {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
 export default function Sidebar() {
   const [user] = useAuthState(auth);
+  const [groups, setGroups] = useState([]);
+  const [addedPerson, setAddedPerson] = useState("");
+  let uid = getCookie("uid");
 
-  const router = useRouter();
-
-  const [groups, groupsLoading, groupsError] = useGetGroupByUid(user.uid);
-  if (!groupsLoading) {
-    let listItem = [];
-    const result = groups.docs.map((item) => {
-      listItem.push(item.data());
-    });
-    console.log(listItem);
-  }
-
-  const redirect = (id) => {
-    router.push(`/chat/${id}`);
+  const handleChange = (event) => {
+    setAddedPerson(event.target.value);
   };
+
+  useEffect(() => {
+    const getGroupByUid = async () => {
+      let uid = getCookie("uid");
+      const data = await GroupController.getGroupByUid(uid);
+
+      setGroups(data);
+    };
+
+    getGroupByUid();
+  }, []);
+
+  // const [groups, groupsLoading, groupsError] = useGetGroupByUid(user.uid);
+  // if (!groupsLoading) {
+  //   let listItem = [];
+  //   const result = groups.docs.map((item) => {
+  //     listItem.push(item.data());
+  //   });
+  //   console.log(listItem);
+  // }
 
   const chatExists = (email) =>
     chats?.find(
@@ -87,13 +115,26 @@ export default function Sidebar() {
           size="sm"
           isRound
           icon={<ArrowLeftIcon />}
-          onClick={() => signOut(auth)}
+          // onClick={() => signOut(auth)}
         />
       </Flex>
-
-      <Button m={5} p={4} onClick={() => newChat()}>
-        New Chat
+      <input
+        placeholder="Put other people uid here..."
+        style={{ padding: 10 }}
+        value={addedPerson}
+        onChange={handleChange}
+      />
+      <Button
+        onClick={async () => {
+          await GroupController.postGroup(uid, addedPerson, "");
+        }}
+      >
+        ADD
       </Button>
+
+      {/* <Button m={5} p={4} onClick={() => newChat()}>
+        New Chat
+      </Button> */}
 
       <Flex
         overflowX="scroll"
@@ -101,32 +142,43 @@ export default function Sidebar() {
         sx={{ scrollbarWidth: "none" }}
         flex={1}
       >
-        {!groupsLoading &&
-          groups.docs.map((e, index) => (
-            <ChatList key={index} value={e.data()} />
-          ))}
+        {groups.length ? (
+          groups.map((e, index) => {
+            return <ChatList key={index} value={e} />;
+          })
+        ) : (
+          <div />
+        )}
       </Flex>
     </Flex>
   );
 }
 
 const ChatList = ({ value }) => {
-  const [user] = useAuthState(auth);
-  const [otherUser, otherUserLoading, otherUserError] = useGetUserByUid(
-    value.members.filter((value) => value != user.uid).at(0)
-  );
-  const { photoURL } = !otherUserLoading ? otherUser.data() : {};
+  // const [user] = useAuthState(auth);
+
+  // const [otherUser, otherUserLoading, otherUserError] = useGetUserByUid(
+  //   value.members.filter((value) => value != user.uid).at(0)
+  // );
+  // const { photoURL } = !otherUserLoading ? otherUser.data() : {};
+
+  const router = useRouter();
+
+  const redirect = (id) => {
+    router.push(`/chat/${value.id}`);
+  };
 
   return (
     <Flex
-      key={Math.random()}
+      // key={Math.random()}
       p={3}
       align="center"
       _hover={{ bg: "gray.100", cursor: "pointer" }}
-      // onClick={() => redirect(chat.id)}
+      onClick={() => redirect("12")}
     >
-      <Avatar src={photoURL || ""} marginEnd={3} />
-      <Text>{value.recentMessage ? value.recentMessage.messageText : ""}</Text>
+      <Avatar src={value.otherPerson.photoURL || ""} marginEnd={3} />
+      <Text>{value.otherPerson.displayName}</Text>
+      <Text>{value.recentMessage.messageText}</Text>
     </Flex>
   );
 };

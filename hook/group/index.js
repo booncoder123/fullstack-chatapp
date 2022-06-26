@@ -1,6 +1,7 @@
 import { useCollection, useDocument } from "react-firebase-hooks/firestore";
 import {
   collection,
+  document,
   addDoc,
   getFirestore,
   setDoc,
@@ -22,4 +23,9 @@ const useGetGroupByUid = (uid) =>
     }
   );
 
-export { useGetGroupByUid };
+const useGetGroupById = (groupId) =>
+  useDocument(query(doc(db, "group", groupId)), {
+    snapshotListenOptions: { includeMetadataChanges: true },
+  });
+
+export { useGetGroupByUid, useGetGroupById };
