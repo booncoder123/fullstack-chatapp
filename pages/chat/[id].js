@@ -27,6 +27,8 @@ import { async } from "@firebase/util";
 import Controller from "../../mixins/custom";
 import { Button } from "@chakra-ui/react";
 import MessageController from "../../mixins/message";
+import GroupController from "../../mixins/group";
+import { useCallback } from "react";
 function getCookie(cname) {
   let name = cname + "=";
   let decodedCookie = decodeURIComponent(document.cookie);
@@ -65,70 +67,12 @@ export default function Chat() {
     getChat();
   }, [router]);
 
-  const handleChange = (event) => {
-    setInput(event.target.value);
-  };
-
-  // const [otherUser, setOtherUser] = useState({});
-  // let messageList = [];
-  // let group = {};
-  // let otherId;
-
-  // const [messages, messagesLoading, messagesError] = useGetMessageByGroupId(id);
-  // const [groupSnapShot, groupSnapShotLoading, groupSnapShotError] =
-  //   useGetGroupById(id);
-
-  // const getOtherUserById = async () => {
-  //   const other = await UserController.getUserByUid(otherId);
-  //   return other;
-  // };
-
-  // if (!messagesLoading && !groupSnapShotLoading) {
-  //   messages.docs.forEach((item) => {
-  //     messageList.push(item.data());
-  //   });
-  //   group = groupSnapShot.data();
-  //   otherId = group.members.filter((item) => item != user.id).at(0);
-  //   console.log(otherId);
-  // }
-
-  // const [user] = useAuthState(auth);
-  // const [chat] = useDocumentData(doc(db, "chats", id));
-  // const q = query(collection(db, `chats/${id}/messages`), orderBy("timestamp"));
-  // const [messages] = useCollectionData(q);
-  // const bottomOfChat = useRef();
-
-  // const getMessages = () =>
-  //   messages?.map((msg) => {
-  //     const sender = msg.sender === user.email;
-  //     return (
-  //       <Flex
-  //         key={Math.random()}
-  //         alignSelf={sender ? "flex-start" : "flex-end"}
-  //         bg={sender ? "blue.100" : "green.100"}
-  //         w="fit-content"
-  //         minWidth="100px"
-  //         borderRadius="lg"
-  //         p={3}
-  //         m={1}
-  //       >
-  //         <Text>{msg.text}</Text>
-  //       </Flex>
-  //     );
-  //   });
-
-  // useEffect(
-  //   () =>
-  //     setTimeout(
-  //       bottomOfChat.current.scrollIntoView({
-  //         behavior: "smooth",
-  //         block: "start",
-  //       }),
-  //       100
-  //     ),
-  //   [messages]
-  // );
-  // console.log(messageList);
+  const handleChange = useCallback(
+    (event) => {
+      setInput(event.target.value);
+    },
+    [input]
+  );
 
   return (
     <Flex h="100vh">
@@ -139,8 +83,6 @@ export default function Chat() {
       <Sidebar />
 
       <Flex flex={1} direction="column">
-        {/* <Topbar email={getOtherEmail(chat?.users, user)} /> */}
-
         <Flex
           flex={1}
           direction="column"
@@ -149,17 +91,6 @@ export default function Chat() {
           overflowX="scroll"
           sx={{ scrollbarWidth: "none" }}
         >
-          {/* {
-            messageList.length > 0 &&
-              messageList.map((item, index) => (
-                <Bubble key={index} value={item} />
-              ))
-            <div>{messageList[0].messageText}</div>
-          } */}
-
-          {/* {getMessages()} */}
-          {/* <div ref={bottomOfChat}></div> */}
-
           <input
             style={{ padding: 10 }}
             value={input}
@@ -167,12 +98,26 @@ export default function Chat() {
             placeholder="type message..."
           />
           <Button
+            style={{ margin: 5 }}
+            onClick={async () => {
+              let uid = getCookie("uid");
+              const other = data.group.members
+                .filter((item) => item != uid)
+                .pop();
+              await UserController.deleteUser(uid, other);
+            }}
+          >
+            Delete Chat
+          </Button>
+          <Button
+            style={{ margin: 5 }}
             onClick={() => {
               MessageController.postMessage(
                 data.group.groupId,
                 getCookie("uid"),
                 input
               );
+              setInput("");
             }}
           >
             Click
@@ -180,7 +125,7 @@ export default function Chat() {
 
           {data &&
             data.messages.map((element, index) => (
-              <Bubble key={index} value={element} data={data} />
+              <Bubble key={Math.random()} value={element} data={data} />
             ))}
         </Flex>
       </Flex>
@@ -193,7 +138,6 @@ const Bubble = ({ value, key, index, data }) => {
 
   return (
     <div
-      key={index}
       style={{
         backgroundColor: "grey",
         margin: 10,

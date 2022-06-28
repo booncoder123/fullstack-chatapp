@@ -28,8 +28,36 @@ const groupRef = collection(db, "group");
 
 export default class UserController {
   static getUserByUid = async (uid) => {
-    const userRef = doc(db, "user", uid);
-    const userSnapShot = await getDoc(userRef);
-    return userSnapShot.data();
+    try {
+      const userRef = doc(db, "user", uid);
+      const userSnapShot = await getDoc(userRef);
+
+      return userSnapShot.data();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  static getDeleteByUid = async (uid) => {
+    try {
+      const deleteRef = collection(db, "user", uid, "delete");
+      let deleteObj = [];
+      const deleteSnapShot = await getDocs(deleteRef);
+      deleteSnapShot.docs.forEach((item) => {
+        deleteObj.push({
+          uid: item.id,
+          time: item.data(),
+        });
+      });
+      return deleteObj;
+    } catch (error) {
+      console.log(err);
+    }
+  };
+  static deleteUser = async (uid, duid) => {
+    const obj = {
+      deleteAt: new Date(),
+    };
+
+    await setDoc(doc(db, "user", uid, "delete", duid), obj);
   };
 }

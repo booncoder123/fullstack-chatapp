@@ -32,7 +32,17 @@ const groupRef = collection(db, "group");
 export default class Controller {
   static getChatPageData = async (groupId, userId) => {
     const group = await GroupController.getGroupById(groupId);
-    const messageList = await MessageController.getMessageByGroupId(groupId);
+
+    let otherId;
+    if (group) {
+      otherId = group.members.filter((item) => item != userId).pop();
+    }
+
+    const messageList = await MessageController.getMessageByGroupId(
+      groupId,
+      userId,
+      otherId
+    );
 
     return {
       group: {

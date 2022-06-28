@@ -28,28 +28,56 @@ import UserController from "./user";
 
 export default class GroupController {
   static getGroupByUid = async (uid) => {
-    let groups = [];
-    const groupRef = collection(db, "group");
-    const q = query(groupRef, where("members", "array-contains", uid));
-    const querySnapshot = await getDocs(q);
+    try {
+      let groups = [];
 
-    // for(let item = 0 ; item < querySnapshot.docs)
-    // console.log(querySnapshot.docs);
-    if (querySnapshot.docs.length) {
-      for (const element of querySnapshot.docs) {
-        const data = element.data();
-        const secPersonId = data.members.filter((pid) => pid != uid).pop();
-        const secPersonData = await UserController.getUserByUid(secPersonId);
+      const deleteUser = await UserController.getDeleteByUid(uid);
 
-        groups.push({
-          id: element.id,
-          ...element.data(),
-          otherPerson: secPersonData,
-        });
+      const groupRef = collection(db, "group");
+      const q = query(groupRef, where("members", "array-contains", uid));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.docs.length) {
+        for (const element of querySnapshot.docs) {
+          const data = element.data();
+          const secPersonId = data.members.filter((pid) => pid != uid).pop();
+          const secPersonData = await UserController.getUserByUid(secPersonId);
+          // from group collection
+          const sentAt = data.recentMessage.sentAt.valueOf();
+
+          if (deleteUser.length) {
+            deleteUser.forEach((user) => {
+              if (user.uid != secPersonId) {
+                groups.push({
+                  id: element.id,
+                  ...element.data(),
+                  otherPerson: secPersonData,
+                });
+              } else if (
+                user.uid == secPersonId &&
+                sentAt > user.time.deleteAt.valueOf()
+              ) {
+                groups.push({
+                  id: element.id,
+                  ...element.data(),
+                  otherPerson: secPersonData,
+                });
+              }
+            });
+          } else {
+            groups.push({
+              id: element.id,
+              ...element.data(),
+              otherPerson: secPersonData,
+            });
+          }
+        }
       }
-    }
 
-    return groups;
+      return groups;
+    } catch (error) {
+      console.log(error);
+    }
   };
   static getGroupById = async (groupId) => {
     const groupRef = doc(db, "group", groupId);
@@ -68,17 +96,10 @@ export default class GroupController {
 
   static postGroup = async (uid, otherId, messageText) => {
     try {
-      console.log(uid, otherId);
       const groupRef = collection(db, "group");
-      const q = query(
-        groupRef,
-        where("members", "==", [uid, otherId])
-
-        // where("members", "==", otherId)
-      );
+      const q = query(groupRef, where("members", "==", [uid, otherId]));
       const querySnapshot = await getDocs(q);
       if (querySnapshot.docs.length != 0) {
-        console.log("hell");
         alert("ผู้ใช้คนนี้ได้ถูกเพิ่มไปเเล้ว");
         return;
       }
@@ -89,12 +110,12 @@ export default class GroupController {
         type: "private",
         recentMessage: {
           messageText: "",
-          sendAt: new Date(),
+          sentAt: new Date(),
           sendBy: uid,
         },
       };
 
-      const docRef = await addDoc(collection(db, "group"), obj);
+      await addDoc(collection(db, "group"), obj);
     } catch (error) {
       console.log(error);
     }

@@ -27,21 +27,38 @@ import GroupController from "../mixins/group.js";
 import UserController from "./user";
 
 export default class MessageController {
-  static getMessageByGroupId = async (groupId) => {
+  static getMessageByGroupId = async (groupId, userId, otherId) => {
     let messages = [];
     const messageRef = collection(db, "message", groupId, "messages");
     const q = query(messageRef, orderBy("sentAt"));
 
     const querySnapshot = await getDocs(q);
+    const deleteUser = await UserController.getDeleteByUid(userId);
+    let deleteAt;
+    if (deleteUser.length) {
+      deleteAt = deleteUser
+        .filter((user) => user.uid == otherId)
+        .pop()
+        .time.deleteAt.valueOf();
+    }
 
     for (const item of querySnapshot.docs) {
       const messageData = item.data();
       const user = await UserController.getUserByUid(messageData.sentBy);
 
-      messages.push({
-        message: item.data(),
-        user,
-      });
+      if (deleteAt) {
+        if (messageData.sentAt.valueOf() > deleteAt) {
+          messages.push({
+            message: item.data(),
+            user,
+          });
+        }
+      } else {
+        messages.push({
+          message: item.data(),
+          user,
+        });
+      }
     }
 
     return messages;
