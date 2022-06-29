@@ -18,6 +18,7 @@ import {
   getDoc,
   doc,
   orderBy,
+  updateDoc,
 } from "@firebase/firestore";
 import Group from "../mixins/group.js";
 import getOtherEmail from "../utils/getOtherEmail";
@@ -59,5 +60,14 @@ export default class UserController {
     };
 
     await setDoc(doc(db, "user", uid, "delete", duid), obj);
+  };
+  static postUser = async (uid, displayName) => {
+    const obj = {
+      displayName,
+      uid,
+    };
+
+    const ref = doc(db, "user", uid);
+    await setDoc(doc(db, "user", uid), obj);
   };
 }
